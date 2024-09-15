@@ -10,7 +10,10 @@ import org.springframework.web.util.HtmlUtils;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 @Controller
 public class WebSocketController {
@@ -49,6 +52,25 @@ public class WebSocketController {
         String formattedTime = correctedTime.format(timeFormatter);
         messagingTemplate.convertAndSend("/topic/clock", "Current time: " + formattedTime);
     }
+
+    // Atsitiktinis juokelis kas 5 sekundės
+    private final List<String> jokes = Arrays.asList(
+            "Tėvas taip norėjo, kad jo sūnus taptų fiziku, jog bausdavo jį ne diržu, o elektros srove.",
+            "Tėvas sako sūnui- jei gerai mokinsies, aš tau pavogsiu dviratį.",
+            "-Daktare, mes praradome pacientą.-Kas atsitiko? -Pasveiko.",
+            "Jei manai, kad valdžiai ant tavęs nusispjaut, pabandyk nors kartą nesumokėti mokesčių.",
+            "Teismas paskyrė bausmę benamiui- namų areštą."
+    );
+    private final Random random = new Random();
+
+    @Scheduled(fixedRate = 5000)
+    public void sendJoke() {
+        String randomJoke = jokes.get(random.nextInt(jokes.size()));
+        messagingTemplate.convertAndSend("/topic/jokes", randomJoke);
+    }
+
+
+
 
 }
 
