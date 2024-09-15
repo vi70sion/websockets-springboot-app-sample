@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Regional Time Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@latest/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+    <h1>Choose Region</h1>
+    
+    <select id="regionalTime" onchange="sendRegionTime()">
+        <option value="0">Lithuania (+0)</option>
+        <option value="2">Germany (+2)</option>
+        <option value="9">Japan (+9)</option>
+        <option value="-9">New York (-9)</option>
+    </select>
+
+    <div id="timeDisplay">Current time will be displayed here</div>
+
+    <script>
+        var stompClient = null;
+
+        function connect() {
+            var socket = new SockJS('http://localhost:8080/websocket');
+            stompClient = Stomp.over(socket);
+
+             stompClient.connect({}, function (frame) {
+                console.log('Connected: ' + frame);
+
+                stompClient.subscribe('/topic/clock', function (message) {
+                    showMessage(message.body);  
+                });
+            }, function (error) {
+                console.log('Error: ' + error);
+            });
+        }
+
+        function sendRegionTime() {
+            var select = document.getElementById('regionalTime');
+            var offset = select.value;
+            var region = select.options[select.selectedIndex].text;
+
+            var message = {
+                region: region,
+                offset: offset
+            };
+
+            stompClient.send("/app/region", {}, JSON.stringify(message));
+        }
+
+        function showMessage(message) {
+            var timeDisplayElement = document.getElementById('timeDisplay');
+            timeDisplayElement.innerText = message; 
+        }
+
+        window.onload = connect;
+    </script>
+</body>
+</html>
